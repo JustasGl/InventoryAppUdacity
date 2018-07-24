@@ -11,8 +11,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -25,24 +27,26 @@ import com.example.android.inventoryappudacity.DataBase.DatabaseHelper;
 import com.example.android.inventoryappudacity.DataBase.InventorContract;
 import com.example.android.inventoryappudacity.DataBase.InventorContract.Inventor;
 
+import java.util.function.Supplier;
+
 public class Add extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int EXISTING_LOADER = 0;
 
     private boolean itemChanged=false;
 
-    EditText TitleEdit,
-            DescriptionEdit,
-            PhoneEdit,
-            SupplierEdit,
-            QuantityEdit,
-            PriceEdit;
-    String Title,
-            Description,
-            Phone,
-            Supplier;
-    int Price,
-            Quantity;
+    EditText titleEdit,
+            descriptionEdit,
+            phoneEdit,
+            supplierEdit,
+            quantityEdit,
+            priceEdit;
+    String title,
+            description,
+            phone,
+            supplier;
+    int price,
+            mQuantity;
     Uri mCurrentItemUri;
 
     Button minus,
@@ -64,24 +68,28 @@ public class Add extends AppCompatActivity implements LoaderManager.LoaderCallba
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        TitleEdit = findViewById(R.id.itemNameEditText);
-        DescriptionEdit = findViewById(R.id.itemDesciptionEditText);
-        PhoneEdit = findViewById(R.id.SupplierPhone);
-        SupplierEdit = findViewById(R.id.SupplierName);
-        QuantityEdit = findViewById(R.id.QuantityEditText);
-        PriceEdit = findViewById(R.id.PriceEditText);
+        titleEdit = findViewById(R.id.itemNameEditText);
+        descriptionEdit = findViewById(R.id.itemDesciptionEditText);
+        phoneEdit = findViewById(R.id.SupplierPhone);
+        supplierEdit = findViewById(R.id.SupplierName);
+        quantityEdit = findViewById(R.id.QuantityEditText);
+        priceEdit = findViewById(R.id.PriceEditText);
         minus = findViewById(R.id.minus);
         plus = findViewById(R.id.plus);
         call = findViewById(R.id.phone);
 
+        plus.setOnTouchListener(mTouchListener);
+        minus.setOnTouchListener(mTouchListener);
+
+
         call.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(PhoneEdit.getText().toString().isEmpty()) {
+                if(phoneEdit.getText().toString().isEmpty()) {
                     Toast.makeText(getApplicationContext(), R.string.Enter_Supplier_phone_first, Toast.LENGTH_SHORT).show();
                 return;
                 }
-                Intent intent = new Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", PhoneEdit.getText().toString(), null));
+                Intent intent = new Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", phoneEdit.getText().toString(), null));
                 startActivity(intent);
             }
         });
@@ -89,50 +97,83 @@ public class Add extends AppCompatActivity implements LoaderManager.LoaderCallba
         plus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!QuantityEdit.getText().toString().isEmpty())
-                    Quantity= Integer.parseInt(QuantityEdit.getText().toString());
-                    Quantity++;
-                    QuantityEdit.setText(Quantity+"");
+                if(!quantityEdit.getText().toString().isEmpty())
+                    mQuantity= Integer.parseInt(quantityEdit.getText().toString());
+                mQuantity++;
+                quantityEdit.setText(mQuantity+"");
             }
         });
         minus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!QuantityEdit.getText().toString().isEmpty())
-                    Quantity= Integer.parseInt(QuantityEdit.getText().toString());
-                if(Quantity==0)
+                if(!quantityEdit.getText().toString().isEmpty())
+                    mQuantity= Integer.parseInt(quantityEdit.getText().toString());
+                if(mQuantity==0)
                     return;
-                Quantity--;
-                QuantityEdit.setText(Quantity+"");
+                mQuantity--;
+                quantityEdit.setText(mQuantity+"");
             }
         });
-        plus.setOnTouchListener(mTouchListener);
-        minus.setOnTouchListener(mTouchListener);
-        TitleEdit.setOnTouchListener(mTouchListener);
-        DescriptionEdit.setOnTouchListener(mTouchListener);
-        PhoneEdit.setOnTouchListener(mTouchListener);
-        SupplierEdit.setOnTouchListener(mTouchListener);
-        QuantityEdit.setOnTouchListener(mTouchListener);
-        PriceEdit.setOnTouchListener(mTouchListener);
+
 
         mCurrentItemUri = getIntent().getData();
 
+        FloatingActionButton fab = findViewById(R.id.fab);
+
         if (mCurrentItemUri == null) {
             setTitle("New Item");
+            setTouchListeners();
+            fab.setVisibility(View.GONE);
             invalidateOptionsMenu();
         } else {
-            setTitle("Edit Item");
+            setTitle("Detailed view");
+            disableEditText();
             getLoaderManager().initLoader(EXISTING_LOADER, null, this);
         }
-    }
 
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setTitle("Edit Item");
+                setTouchListeners();
+                enableEdittext();
+            }
+        });
+    }
+    private void setTouchListeners()
+    {
+        titleEdit.setOnTouchListener(mTouchListener);
+        descriptionEdit.setOnTouchListener(mTouchListener);
+        phoneEdit.setOnTouchListener(mTouchListener);
+        supplierEdit.setOnTouchListener(mTouchListener);
+        quantityEdit.setOnTouchListener(mTouchListener);
+        priceEdit.setOnTouchListener(mTouchListener);
+    }
+    private void disableEditText()
+    {
+        titleEdit.setFocusableInTouchMode(false);
+        descriptionEdit.setFocusableInTouchMode(false);
+        phoneEdit.setFocusableInTouchMode(false);
+        supplierEdit.setFocusableInTouchMode(false);
+        quantityEdit.setFocusableInTouchMode(false);
+        priceEdit.setFocusableInTouchMode(false);
+    }
+    private void enableEdittext()
+    {
+        titleEdit.setFocusableInTouchMode(true);
+        descriptionEdit.setFocusableInTouchMode(true);
+        phoneEdit.setFocusableInTouchMode(true);
+        supplierEdit.setFocusableInTouchMode(true);
+        quantityEdit.setFocusableInTouchMode(true);
+        priceEdit.setFocusableInTouchMode(true);
+    }
     private void getInfo() {
-        Title = TitleEdit.getText().toString().trim();
-        Description = DescriptionEdit.getText().toString().trim();
-        Phone = PhoneEdit.getText().toString().trim();
-        Supplier = SupplierEdit.getText().toString().trim();
-        Quantity = Integer.parseInt(QuantityEdit.getText().toString().trim());
-        Price = Integer.parseInt(PriceEdit.getText().toString().trim());
+        title = titleEdit.getText().toString().trim();
+        description = descriptionEdit.getText().toString().trim();
+        phone = phoneEdit.getText().toString().trim();
+        supplier = supplierEdit.getText().toString().trim();
+        mQuantity = Integer.parseInt(quantityEdit.getText().toString().trim());
+        price = Integer.parseInt(priceEdit.getText().toString().trim());
     }
 
     @Override
@@ -146,7 +187,7 @@ public class Add extends AppCompatActivity implements LoaderManager.LoaderCallba
         int id = item.getItemId();
         if (id == R.id.addAdd) {
             getInfo();
-            if (Title.isEmpty() || Description.isEmpty() || Price<0||Phone.isEmpty()||Supplier.isEmpty()||Quantity <0) {
+            if (title.isEmpty() || description.isEmpty() || price<0||phone.isEmpty()|| supplier.isEmpty()||mQuantity <0) {
                 Checkinfo();
                 return false;
             }
@@ -155,12 +196,12 @@ public class Add extends AppCompatActivity implements LoaderManager.LoaderCallba
                 finish();
             }
         } else if (id == R.id.clearAdd) {
-            TitleEdit.setText("");
-            DescriptionEdit.setText("");
-            PhoneEdit.setText("");
-            SupplierEdit.setText("");
-            QuantityEdit.setText("");
-            PriceEdit.setText("");
+            titleEdit.setText("");
+            descriptionEdit.setText("");
+            phoneEdit.setText("");
+            supplierEdit.setText("");
+            quantityEdit.setText("");
+            priceEdit.setText("");
         }
         else if(id == R.id.del)
             showDeleteConfirmationDialog();
@@ -169,16 +210,16 @@ public class Add extends AppCompatActivity implements LoaderManager.LoaderCallba
 
     private void saveData() {
 
-        if(mCurrentItemUri==null&&Title.isEmpty()&&Description.isEmpty()&& Supplier.isEmpty()&& Phone.isEmpty())
+        if(mCurrentItemUri==null&&title.isEmpty()&&description.isEmpty()&& supplier.isEmpty()&& phone.isEmpty())
             return;
 
         ContentValues values = new ContentValues();
-        values.put(Inventor.Description, Description);
-        values.put(Inventor.Title, Title);
-        values.put(Inventor.InStock, Quantity);
-        values.put(Inventor.SupplierPhone, Phone);
-        values.put(Inventor.SupplierName, Supplier);
-        values.put(Inventor.Price, Price);
+        values.put(Inventor.Description, description);
+        values.put(Inventor.Title, title);
+        values.put(Inventor.InStock, mQuantity);
+        values.put(Inventor.SupplierPhone, phone);
+        values.put(Inventor.SupplierName, supplier);
+        values.put(Inventor.Price, price);
 
         if(mCurrentItemUri==null)
         {
@@ -311,14 +352,14 @@ public class Add extends AppCompatActivity implements LoaderManager.LoaderCallba
             String suplliername = cursor.getString(SupplierNameIndex);
             String suplierphone = cursor.getString(SupplierPhoneIndex);
 
-            Quantity = quantity;
+            mQuantity = quantity;
 
-            TitleEdit.setText(name);
-            SupplierEdit.setText(suplliername);
-            QuantityEdit.setText(quantity+"");
-            DescriptionEdit.setText(description);
-            PriceEdit.setText(price+"");
-            PhoneEdit.setText(suplierphone);
+            titleEdit.setText(name);
+            supplierEdit.setText(suplliername);
+            quantityEdit.setText(quantity+"");
+            descriptionEdit.setText(description);
+            priceEdit.setText(price+"");
+            phoneEdit.setText(suplierphone);
         }
     }
 

@@ -36,10 +36,10 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentStart="true"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="25dp"
             android:text="@string/no_items_yet"
             android:textAlignment="center"
-            android:textSize="24sp" />
+            android:textSize="@dimen/noitemstext" />
     </RelativeLayout>
     <ListView
         android:id="@+id/listview"

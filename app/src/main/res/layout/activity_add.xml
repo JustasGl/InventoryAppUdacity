@@ -21,14 +21,16 @@
     <EditText
         android:id="@+id/itemNameEditText"
        style="@style/EditText"
-        android:hint="@string/item_name" />
+        android:hint="@string/item_name"
+       />
     <TextView
         style="@style/Text"
         android:text="@string/descriptionText"/>
     <EditText
         android:id="@+id/itemDesciptionEditText"
         style="@style/EditText"
-        android:hint="@string/description" />
+        android:hint="@string/description"
+        />
     <TextView
         style="@style/Text"
         android:text="@string/Textprice"/>
@@ -36,7 +38,8 @@
         android:id="@+id/PriceEditText"
         style="@style/EditText"
         android:hint="@string/price"
-        android:inputType="numberDecimal" />
+        android:inputType="numberDecimal"
+        />
     <TextView
         style="@style/Text"
         android:text="@string/Textquantity"/>
@@ -51,7 +54,8 @@
         android:hint="@string/quantity"
         android:layout_marginStart="@dimen/EditMargin"
         android:inputType="numberSigned"
-        android:layout_weight="4"/>
+        android:layout_weight="4"
+        />
     <Button
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -70,7 +74,8 @@
     <EditText
         android:id="@+id/SupplierName"
         style="@style/EditText"
-        android:hint="@string/supplier" />
+        android:hint="@string/supplier"
+        />
     <TextView
         style="@style/Text"
         android:text="@string/suplier_phone_numberText"/>
@@ -78,7 +83,8 @@
         android:id="@+id/SupplierPhone"
         style="@style/EditText"
         android:hint="@string/supplier_phone_number"
-        android:inputType="phone" />
+        android:inputType="phone"
+        />
     <Button
         android:layout_width="wrap_content"
         android:layout_height="0dp"
@@ -86,5 +92,12 @@
         android:text="@string/call"
         android:id="@+id/phone"
         android:layout_gravity="center"/>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_gravity="right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/marginFab"
+        android:src="@drawable/ic_edit"/>
 </LinearLayout>
 </ScrollView>

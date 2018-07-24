@@ -2,6 +2,7 @@ package com.example.android.inventoryappudacity;
 
 import android.app.LoaderManager;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -63,15 +64,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         listView.setAdapter(mCursorAdapter);
         listView.setEmptyView(emptyView);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent addIntent = new Intent(getApplicationContext(), Add.class);
-                Uri currentItem = ContentUris.withAppendedId(InventorContract.Inventor.CONTENT_URI,l);
-                addIntent.setData(currentItem);
-                getApplicationContext().startActivity(addIntent);
-            }
-        });
     }
 
     @Override
@@ -79,7 +71,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getMenuInflater().inflate(R.menu.main, menu);
         return super.onCreateOptionsMenu(menu);
     }
-
+    public static void listItemClick(Context context, long id)
+    {
+        Intent addIntent = new Intent(context, Add.class);
+        Uri currentItem = ContentUris.withAppendedId(InventorContract.Inventor.CONTENT_URI,id);
+        addIntent.setData(currentItem);
+        context.startActivity(addIntent);
+    }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();

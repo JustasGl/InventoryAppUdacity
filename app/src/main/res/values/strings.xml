@@ -43,7 +43,7 @@
     <string name="checkinfo">Check your info quantity and price cannot be negative and other information have to be filled</string>
     <string name="ok">ok</string>
 
-    <string name="no_items_yet">No items yet</string>
+    <string name="no_items_yet">No items yet, click three dots at the top and click add to add items</string>
     <string name="call">Call</string>
     <string name="deletion_not_supported">Deletion is not supported for</string>
     <string name="failed_to_insert_row">Failed to insert row for</string>
@@ -77,4 +77,10 @@
     <string name="nothingSelected">Nothing selected</string>
     <string name="plus">+</string>
     <string name="minus">-</string>
+
+    <string name="desnotempty">Description cannot be empty</string>
+    <string name="supnotempty">Supplier phone cannot be empty</string>
+    <string name="supnamenotempty">Supplier name cannot be empty</string>
+
+
 </resources>

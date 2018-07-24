@@ -143,16 +143,44 @@
     private int updater(Uri uri, ContentValues values, String s, String [] strings)
     {
         SQLiteDatabase database = mDataBase.getWritableDatabase();
-        int amount = values.getAsInteger(InventorContract.Inventor.InStock);
-        if(amount<0)
-            throw new IllegalArgumentException(getContext().getString(R.string.Amount_cant_be_Less));
-        int value = values.getAsInteger(InventorContract.Inventor.Price);
-        if(value<0)
-            throw new IllegalArgumentException(getContext().getString(R.string.value_cannot_be_negative));
-        String title = values.getAsString(InventorContract.Inventor.Title);
-        if(title.isEmpty())
-            throw new IllegalArgumentException(getContext().getString(R.string.Title_cannot_be_empty));
 
+        if(values.containsKey(InventorContract.Inventor.InStock)) {
+            int amount = values.getAsInteger(InventorContract.Inventor.InStock);
+            if (amount < 0)
+                throw new IllegalArgumentException(getContext().getString(R.string.Amount_cant_be_Less));
+        }
+
+        if(values.containsKey(InventorContract.Inventor.Price)) {
+            int value = values.getAsInteger(InventorContract.Inventor.Price);
+            if (value < 0)
+                throw new IllegalArgumentException(getContext().getString(R.string.value_cannot_be_negative));
+        }
+
+        if(values.containsKey(InventorContract.Inventor.Title)) {
+            String title = values.getAsString(InventorContract.Inventor.Title);
+            if (title.isEmpty())
+                throw new IllegalArgumentException(getContext().getString(R.string.Title_cannot_be_empty));
+        }
+
+        if(values.containsKey(InventorContract.Inventor.Description))
+        {
+            String description = values.getAsString(InventorContract.Inventor.Description);
+            if(description.isEmpty())
+                throw new IllegalArgumentException(getContext().getString(R.string.desnotempty));
+        }
+        if(values.containsKey(InventorContract.Inventor.SupplierPhone))
+        {
+            String supplierPhone = values.getAsString(InventorContract.Inventor.SupplierPhone);
+            if(supplierPhone.isEmpty())
+                throw new IllegalArgumentException(getContext().getString(R.string.supnotempty));
+        }
+
+        if(values.containsKey(InventorContract.Inventor.SupplierName))
+        {
+            String supplierName = values.getAsString(InventorContract.Inventor.SupplierName);
+            if(supplierName.isEmpty())
+                throw new IllegalArgumentException(getContext().getString(R.string.supnamenotempty));
+        }
               int updated =  database.update(InventorContract.Inventor.TableName,values,s,strings);
         if(updated!=0)
         {

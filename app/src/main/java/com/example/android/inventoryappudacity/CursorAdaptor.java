@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CursorAdapter;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +44,10 @@ public class CursorAdaptor extends CursorAdapter {
                 Description;
         final CheckBox checkBox;
 
+        Button plus,
+                minus;
+        LinearLayout mainLayout;
+
         Title = view.findViewById(R.id.Title);
         Phone = view.findViewById(R.id.SupplierPhone);
         Name = view.findViewById(R.id.SupplierName);
@@ -50,6 +55,9 @@ public class CursorAdaptor extends CursorAdapter {
         Quantity = view.findViewById(R.id.Quantity);
         checkBox = view.findViewById(R.id.checkbox);
         Description = view.findViewById(R.id.description);
+              plus = view.findViewById(R.id.plus);
+              minus = view.findViewById(R.id.minus);
+        mainLayout = view.findViewById(R.id.mainitem);
 
             int idpos = cursor.getColumnIndex(InventorContract.Inventor._ID);
             final int titlepos = cursor.getColumnIndex(InventorContract.Inventor.Title);
@@ -58,7 +66,7 @@ public class CursorAdaptor extends CursorAdapter {
             final int pricepos = cursor.getColumnIndex(InventorContract.Inventor.Price);
         int quantitypos = cursor.getColumnIndex(InventorContract.Inventor.InStock);
         final int descriptionpos = cursor.getColumnIndex(InventorContract.Inventor.Description);
-            final int id = cursor.getInt(idpos);
+            final long id = cursor.getInt(idpos);
 
         if(cursor.getString(titlepos).isEmpty())
             Title.setText(R.string.Unknown_title);
@@ -92,7 +100,39 @@ public class CursorAdaptor extends CursorAdapter {
             checkBox.setChecked(false);
         else checkBox.setChecked(true);
 
+        plus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ContentValues values = new ContentValues();
+                int tempQuantity = quantity;
+                tempQuantity++;
+                values.put(InventorContract.Inventor.InStock,tempQuantity);
+                Uri uri;
+                uri = ContentUris.withAppendedId(InventorContract.Inventor.CONTENT_URI,id);
+                context.getContentResolver().update(uri,values,null,null);
+            }
+        });
+    minus.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            int tempQuantity = quantity;
+            if(tempQuantity==0)
+                return;
 
+            ContentValues values = new ContentValues();
+            tempQuantity--;
+            values.put(InventorContract.Inventor.InStock,tempQuantity);
+            Uri uri;
+            uri = ContentUris.withAppendedId(InventorContract.Inventor.CONTENT_URI,id);
+            context.getContentResolver().update(uri,values,null,null);
+        }
+    });
+    mainLayout.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            MainActivity.listItemClick(context,id);
+        }
+    });
     }
     }
 
