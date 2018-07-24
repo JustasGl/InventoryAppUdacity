@@ -1,18 +1,28 @@
 package com.example.android.inventoryappudacity;
 
+import android.app.LoaderManager;
+import android.content.ContentUris;
+import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CursorAdapter;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -22,77 +32,44 @@ import com.baoyz.swipemenulistview.SwipeMenuItem;
 import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.baoyz.swipemenulistview.SwipeMenuListView.OnMenuItemClickListener;
 import com.example.android.inventoryappudacity.DataBase.DatabaseHelper;
-import com.example.android.inventoryappudacity.DataBase.DbObject;
+import com.example.android.inventoryappudacity.DataBase.InventorContract;
 import com.example.android.inventoryappudacity.DataBase.InventorContract.Inventor;
 
-import java.util.ArrayList;
-
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
-    ArrayList<DbObject> Objects;
-    SwipeMenuListView listView;
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener,LoaderManager.LoaderCallbacks<Cursor> {
+    ListView listView;
     String Order = null;
+    View emptyView;
+    private static final int LOADER_ID = 0;
+    CursorAdapter mCursorAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getLoaderManager().initLoader(LOADER_ID, null, this);
+
+        emptyView = findViewById(R.id.emptyview);
+        mCursorAdapter = new CursorAdaptor(this,null);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        loadFromDb();
-        display();
         Spinner spinner = (Spinner) findViewById(R.id.spinner_nav);
         ArrayAdapter<CharSequence> adapt = ArrayAdapter.createFromResource(this,
                 R.array.OrderArray, android.R.layout.simple_spinner_item);
         adapt.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapt);
         spinner.setOnItemSelectedListener(this);
-        SwipeMenuCreator creator = new SwipeMenuCreator() {
 
-            @Override
-            public void create(SwipeMenu menu) {
-                SwipeMenuItem openItem = new SwipeMenuItem(
-                        getApplicationContext());
-                openItem.setBackground(new ColorDrawable(Color.rgb(66, 200,
-                        95)));
-                openItem.setWidth(170);
-                openItem.setIcon(R.drawable.ic_edit);
-                menu.addMenuItem(openItem);
+        listView = (ListView) findViewById(R.id.listview);
 
-                SwipeMenuItem deleteItem = new SwipeMenuItem(
-                        getApplicationContext());
-                deleteItem.setBackground(new ColorDrawable(Color.rgb(0xF9,
-                        0x3F, 0x25)));
-                deleteItem.setWidth(170);
-                deleteItem.setIcon(R.drawable.ic_delete);
-                menu.addMenuItem(deleteItem);
-            }
-        };
-        listView.setMenuCreator(creator);
-        listView.setSwipeDirection(SwipeMenuListView.DIRECTION_LEFT);
-        listView.setOnMenuItemClickListener(new OnMenuItemClickListener() {
+        listView.setAdapter(mCursorAdapter);
+        listView.setEmptyView(emptyView);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
-                switch (index) {
-                    case 0:
-                        DbObject object = Objects.get(position);
-                        Intent addIntent = new Intent(getApplicationContext(), Add.class);
-                        addIntent.putExtra(Inventor.ID, object.getmID());
-                        addIntent.putExtra(Inventor.Title, object.getmTitle());
-                        addIntent.putExtra(Inventor.Description, object.getmDescription());
-                        addIntent.putExtra(Inventor.InStock, object.getmInStock());
-                        addIntent.putExtra(Inventor.SupplierName, object.getmSupplierName());
-                        addIntent.putExtra(Inventor.SupplierPhone, object.getmSupplierPhone());
-                        addIntent.putExtra(Inventor.Price, object.getmPrice());
-                        getApplicationContext().startActivity(addIntent);
-                        break;
-                    case 1:
-                        if (delete(position)) {
-                            loadFromDb();
-                            display();
-                        } else
-                            Toast.makeText(getApplicationContext(), "Failed to delete", Toast.LENGTH_SHORT).show();
-                        break;
-                }
-                return false;
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent addIntent = new Intent(getApplicationContext(), Add.class);
+                Uri currentItem = ContentUris.withAppendedId(InventorContract.Inventor.CONTENT_URI,l);
+                addIntent.setData(currentItem);
+                getApplicationContext().startActivity(addIntent);
             }
         });
     }
@@ -110,66 +87,27 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Intent AddScreen = new Intent(this, Add.class);
             startActivity(AddScreen);
         } else if (id == R.id.clear) {
-            DatabaseHelper helper = new DatabaseHelper(this);
-            SQLiteDatabase db = helper.getWritableDatabase();
-
-            db.delete(Inventor.TableName, null, null);
-            loadFromDb();
-            display();
+            showDeleteConfirmationDialog(-10);
         }
+
         return super.onOptionsItemSelected(item);
     }
 
-    private void loadFromDb() {
-        Objects = new ArrayList<>();
-        DatabaseHelper Helper = new DatabaseHelper(this);
-        SQLiteDatabase db = Helper.getReadableDatabase();
-
-        Cursor cursor = db.query(Inventor.TableName, null, null, null, null, null, Order);
-        try {
-            int nameIndex = cursor.getColumnIndex(Inventor.Title);
-            int descriptionIndex = cursor.getColumnIndex(Inventor.Description);
-            int inStockIndex = cursor.getColumnIndex(Inventor.InStock);
-            int idIndex = cursor.getColumnIndex(Inventor._ID);
-            int priceIndex = cursor.getColumnIndex(Inventor.Price);
-            int SupplierNameIndex = cursor.getColumnIndex(Inventor.SupplierName);
-            int SupplierPhoneIndex = cursor.getColumnIndex(Inventor.SupplierPhone);
-
-
-            while (cursor.moveToNext()) {
-                String name = cursor.getString(nameIndex);
-                String Description = cursor.getString(descriptionIndex);
-                int InStock = cursor.getInt(inStockIndex);
-                int id = cursor.getInt(idIndex);
-                int price = cursor.getInt(priceIndex);
-                String SupplierName = cursor.getString(SupplierNameIndex);
-                String SupplierPhone = cursor.getString(SupplierPhoneIndex);
-                DbObject object = new DbObject(name, Description, InStock, id, price, SupplierName, SupplierPhone);
-                Objects.add(object);
-            }
-        } finally {
-            cursor.close();
-        }
-    }
-
-    private void display() {
-        listView = findViewById(R.id.listview);
-        ListAdapter adapter = new ListAdapter(this, Objects);
-        listView.setAdapter(adapter);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        loadFromDb();
-        display();
-    }
-
     private boolean delete(int pos) {
-        DatabaseHelper Helper = new DatabaseHelper(this);
-        SQLiteDatabase db = Helper.getWritableDatabase();
-        DbObject object = Objects.get(pos);
-        return db.delete(Inventor.TableName, Inventor._ID + "=" + object.getmID(), null) > 0;
+        Toast.makeText(getApplicationContext(),""+pos,Toast.LENGTH_SHORT).show();
+        if(pos>=0) {
+            Uri uri =ContentUris.withAppendedId(InventorContract.Inventor.CONTENT_URI,pos);
+            int rowsDeleted = getContentResolver().delete(uri, null, null);
+          Log.v("CatalogActivity", rowsDeleted + getString(R.string.rownsDeleted));
+          return true;
+    }
+    else if(pos<0)
+        {
+            int rowsDeleted = getContentResolver().delete(Inventor.CONTENT_URI, null, null);
+            Log.v("CatalogActivity", rowsDeleted + getString(R.string.rownsDeleted));
+            return true;
+        }
+        else return false;
     }
 
     @Override
@@ -180,15 +118,48 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Order=Inventor.Price;
         if(i==2)
             Order=Inventor.InStock;
+        getLoaderManager().restartLoader(LOADER_ID,null,this);
 
-        Toast.makeText(getApplicationContext(),Order,Toast.LENGTH_SHORT).show();
-
-        loadFromDb();
-        display();
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
-    Toast.makeText(getApplicationContext(),"Nothing selected",Toast.LENGTH_SHORT).show();
+    Toast.makeText(getApplicationContext(), R.string.nothingSelected,Toast.LENGTH_SHORT).show();
+    }
+    private void showDeleteConfirmationDialog(final int pos) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.delete_dialog_msg);
+        builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                if (delete(pos)) {
+                } else
+                    Toast.makeText(getApplicationContext(), R.string.failledTOdelete, Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        String [] projection = {Inventor.ID, Inventor.Title,Inventor.Description,Inventor.InStock,Inventor.Price,Inventor.SupplierName,Inventor.SupplierPhone};
+        return new CursorLoader(this,InventorContract.Inventor.CONTENT_URI,projection,null,null,Order);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        mCursorAdapter.swapCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mCursorAdapter.swapCursor(null);
     }
 }

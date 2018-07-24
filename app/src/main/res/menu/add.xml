@@ -4,4 +4,6 @@
 
     <item android:title="@string/add" android:id="@+id/addAdd" app:showAsAction="always" android:icon="@drawable/ic_add"/>
     <item android:title="@string/clear" android:id="@+id/clearAdd" />
+    <item android:title="@string/del" android:id="@+id/del" app:showAsAction="always" android:icon="@drawable/ic_delete"/>
+
 </menu>

@@ -13,7 +13,7 @@ import com.example.android.inventoryappudacity.DataBase.InventorContract.Invento
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DbName = "Inventor";
-    private static final int DbVersion = 3;
+    private static final int DbVersion = 5;
 
     public DatabaseHelper(Context context) {
         super(context, DbName, null, DbVersion);
@@ -26,7 +26,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Inventor.Title + " TEXT NOT NULL, " +
                 Inventor.Description + " TEXT NOT NULL, " +
                 Inventor.InStock + " INTEGER NOT NULL DEFAULT 0, " +
-                Inventor.Price + " TEXT NOT NULL, " +
+                Inventor.Price + " INTEGER NOT NULL DEFAULT 0, " +
                 Inventor.SupplierName + " TEXT NOT NULL, " +
                 Inventor.SupplierPhone + " TEXT NOT NULL);";
         sqLiteDatabase.execSQL(SqlQuery);
